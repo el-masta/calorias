@@ -1,0 +1,35 @@
+body {
+  background-color: #f4f6f9;
+}
+
+.card {
+  border-radius: 12px;
+}
+
+.card-title i {
+  color: #007bff;
+}
+
+.conError {
+  border-color: #f66;
+}
+
+.errorMsg {
+  color: #f66;
+  font-weight: 700;
+}
+
+.fila-resaltada {
+  background-color: #cef5fa !important;
+}
+
+.table {
+  --bs-table-bg: none !important;
+}
+
+header {
+  background-color: #6200ea;
+  color: white;
+  padding: 0.5em;
+  text-align: center;
+}

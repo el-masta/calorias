@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Calculadora de ingesta calórica</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" href="favicon.ico" type="image/x-icon" />
+</head>
+
+<body>
+  <header>
+    <h1>Calculadora calórica</h1>
+  </header>
+  <div class="container py-4" id="appCalorías">
+    <div class="row g-4">
+      <!-- Formulario -->
+      <div class="col-md-6">
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <h4 class="card-title mb-4">
+              <i class="fa-solid fa-user-edit me-2"></i>Ingresa tus datos
+            </h4>
+            <!-- <form id="calorieForm"> -->
+            <div class="row mb-3">
+              <div class="col">
+                <label class="form-label" for="sexo">Sexo biológico</label>
+                <select class="form-select" id="sexo" required v-model="sexo" :class="[sexo==''?'conError':'']"
+                  @change="calcularCalorias">
+                  <option value="" disabled>Selecciona</option>
+                  <option value="male">Masculino</option>
+                  <option value="female">Femenino</option>
+                </select>
+              </div>
+              <div class="col">
+                <label class="form-label" for="estatura">Estatura</label>
+                <div class="input-group">
+                  <input type="number" class="form-control" step="0.5" min="1.2" max="2.39" id="estatura" required
+                    v-model.number="estatura" :class="[estatura<1.2 ?'conError':'']" @change="calcularCalorias" />
+                  <span class="input-group-text">m</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="row mb-3">
+              <div class="col">
+                <label class="form-label" for="anio">Año de nacimiento</label>
+                <input type="number" class="form-control" id="anio" min="1900" max="2025" required v-model.number="anio"
+                  @change="calcularCalorias" />
+              </div>
+              <div class="col">
+                <label class="form-label" for="mes">Mes de nacimiento</label>
+                <select class="form-select" id="mes" required v-model="mes" :class="[mes==''?'conError':'']"
+                  @change="calcularCalorias">
+                  <option value="1">Enero</option>
+                  <option value="2">Febrero</option>
+                  <option value="3">Marzo</option>
+                  <option value="4">Abril</option>
+                  <option value="5">Mayo</option>
+                  <option value="6">Junio</option>
+                  <option value="7">Julio</option>
+                  <option value="8">Agosto</option>
+                  <option value="9">Septiembre</option>
+                  <option value="10">Octubre</option>
+                  <option value="11">Noviembre</option>
+                  <option value="12">Diciembre</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="row mb-3">
+              <div class="col">
+                <label class="form-label" for="pesoActual">Peso actual</label>
+                <div class="input-group">
+                  <input type="number" class="form-control" step="1" id="pesoActual" required
+                    v-model.number="pesoActual" @change="calcularCalorias" />
+                  <span class="input-group-text">kg</span>
+                </div>
+              </div>
+              <div class="col">
+                <label class="form-label" for="pesoObjetivo">Peso objetivo</label>
+                <div class="input-group">
+                  <input type="number" class="form-control" step="1" id="pesoObjetivo" required
+                    v-model.number="pesoObjetivo" @change="calcularCalorias" />
+                  <span class="input-group-text">kg</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="actividad" class="form-label">¿Cual es tu nivel de actividad física?</label>
+              <input type="range" class="form-range" min="0" max="5" step="1" id="actividad" name="actividad"
+                v-model.number="nivelActividad" @change="calcularCalorias">
+              <div id="leyendaActividad" class="form-text ms-1 text-center">{{leyendaActividad}}</div>
+            </div>
+            <!-- </form> -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Resultados -->
+      <div class="col-md-6">
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <h4 class="card-title mb-4">
+              <i class="fa-solid fa-chart-line me-2"></i>Resultado
+            </h4>
+            <template v-if="errorMessage.length>0">
+              <p class="errorMsg" v-for="error in errorMessage">{{error}}</p>
+            </template>
+            <template v-else>
+              <p>El metabolismo basal (calorías suficientes para sobrevivir) para tus {{edad}} años con la fórmula de
+                <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC7478086/" nofollow target="_blank">Mifflin-St Jeor</a>
+                es de: <strong>{{ formatNumber(metabolismoBasal) }} calorías</strong>
+              </p>
+              <p>Para llegar a tu Peso Objetivo sugiero:</p>
+              <table class="table table-bordered">
+                <thead class="table-light">
+                  <tr>
+                    <th>Plan</th>
+                    <th>Calorías</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr :class="{ 'fila-resaltada': plan === 1 }">
+                    <td>Déficit saludable</td>
+                    <td>{{ formatNumber(calorias.deficitSaludable) }}</td>
+                    </td>
+                  </tr>
+                  <tr :class="{ 'fila-resaltada': plan === 2 }">
+                    <td>Déficit leve</td>
+                    <td>{{ formatNumber(calorias.deficitLeve) }}</td>
+                    </td>
+                  </tr>
+                  <tr :class="{ 'fila-resaltada': plan === 3 }">
+                    <td>Mantenimiento</td>
+                    <td>{{ formatNumber(calorias.mantenimiento) }}</td>
+                    </td>
+                  </tr>
+                  <tr :class="{ 'fila-resaltada': plan === 4 }">
+                    <td>Superávit leve</td>
+                    <td>{{ formatNumber(calorias.superavitLeve) }}</td>
+                    </td>
+                  </tr>
+                  <tr :class="{ 'fila-resaltada': plan === 5 }">
+                    <td>Superávit saludable</td>
+                    <td>{{ formatNumber(calorias.superavitModerado) }}</td>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+              <p>{{objetivoMessage}}</p>
+
+            </template>
+          </div>
+
+        </div>
+
+      </div>
+      <p>&nbsp;</p>
+    </div>
+  </div>
+  <script src="https://unpkg.com/vue@3.4.0/dist/vue.global.prod.js"></script>
+  <script src="calorias.js"></script>
+  <footer class="text-center text-muted small py-3">
+    Creado por <strong>El_Masta</strong> ·
+    <a href="https://t.me/int_null" target="_blank">@int_null</a> ·
+    Última actualización: 5 de junio de 2025
+  </footer>
+</body>
+
+</html>
